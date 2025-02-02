@@ -21,7 +21,6 @@ jobs:
       - name: Checkout GitHub repository
         uses: actions/checkout@v4
         with:
-          repository: ${{ matrix.repo.dest }}
           persist-credentials: false
 
       - name: Set up Git
