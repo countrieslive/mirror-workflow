@@ -39,4 +39,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           git remote set-url origin https://${{ secrets.GH_PAT }}@github.com/${{ matrix.repo.dest }}.git
-          git push origin refs/remotes/source/*:refs/heads/* --force
+          for branch in $(git branch -r | grep 'source/' | grep -v 'HEAD' | sed 's/source\///'); do
+            git push origin +refs/remotes/source/$branch:refs/heads/$branch --force;
+          done
