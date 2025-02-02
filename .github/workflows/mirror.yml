@@ -32,7 +32,7 @@ jobs:
       - name: Add Source Remote
         run: |
           git remote add source ${{ matrix.repo.src }}
-          git fetch source
+          git fetch source --tags
 
       - name: Push to GitHub
         env:
@@ -45,3 +45,6 @@ jobs:
           for branch in $(git branch -r | grep 'source/' | grep -v 'HEAD' | sed 's/source\///'); do
             git push origin +refs/remotes/source/$branch:refs/heads/$branch --force;
           done
+
+          # Push all tags
+          git push origin --tags
