@@ -15,6 +15,7 @@ jobs:
           - { src: 'https://github.com/mledoze/countries.git', dest: 'countrieslive/mledoze-countries' }
           - { src: 'https://github.com/countries/countries.git', dest: 'countrieslive/countries-mirror' }
           - { src: 'https://github.com/countries/countries-data-json.git', dest: 'countrieslive/countries-json-mirror' }
+          - { src: 'https://github.com/prebid/currency-file.git', dest: 'countrieslive/prebid-currency-mirror' }
           # Add more repositories as needed
 
     steps:
