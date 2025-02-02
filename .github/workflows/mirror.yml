@@ -11,11 +11,9 @@ jobs:
     strategy:
       matrix:
         repo:
-          - { src: 'https://gitlab.com/restcountries/restcountries.git', dest: 'countrieslive/restcountries-mirror' }
-          - { src: 'https://github.com/mledoze/countries.git', dest: 'countrieslive/mledoze-countries' }
-          - { src: 'https://github.com/countries/countries.git', dest: 'countrieslive/countries-mirror' }
-          - { src: 'https://github.com/countries/countries-data-json.git', dest: 'countrieslive/countries-json-mirror' }
-          - { src: 'https://github.com/prebid/currency-file.git', dest: 'countrieslive/prebid-currency-mirror' }
+          - { src: 'https://gitlab.com/example/repo.git', dest: 'exampleuser/repo1-mirror' }
+          - { src: 'https://github.com/example/repo1.git', dest: 'exampleuser/repo2-mirror' }
+          - { src: 'https://gitlab.com/example/repo2.git', dest: 'exampleuser/repo3-mirror' }
           # Add more repositories as needed
 
     steps:
@@ -38,7 +36,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         run: |
+          # Set the destination repository URL
           git remote set-url origin https://${{ secrets.GH_PAT }}@github.com/${{ matrix.repo.dest }}.git
+          
+          # Push all branches except HEAD
           for branch in $(git branch -r | grep 'source/' | grep -v 'HEAD' | sed 's/source\///'); do
             git push origin +refs/remotes/source/$branch:refs/heads/$branch --force;
           done
