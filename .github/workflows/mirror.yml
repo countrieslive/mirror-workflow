@@ -1,9 +1,13 @@
 name: Mirror Repositories
 
 on:
+  push: # Triggers the workflow when a push is made to the repository
+    branches:
+      - main # The branch to trigger the workflow on
   schedule:
     - cron: '0 * * * *'  # Runs every hour
   workflow_dispatch:  # Allows manual triggering of the workflow
+
 
 jobs:
   mirror:
@@ -17,6 +21,8 @@ jobs:
           - { src: 'https://github.com/countries/countries-data-json.git', dest: 'countrieslive/countries-json-mirror' }
           - { src: 'https://github.com/prebid/currency-file.git', dest: 'countrieslive/prebid-currency-mirror' }
           - { src: 'https://github.com/fawazahmed0/exchange-api.git', dest: 'countrieslive/fawazahmed0-exchange-mirror' }
+          - { src: 'https://github.com/madebybowtie/FlagKit.git', dest: 'countrieslive/flagKit-mirror' }
+          - { src: 'https://github.com/lipis/flag-icons.git', dest: 'countrieslive/flagicons-mirror' }
           # Add more repositories as needed
 
     steps:
