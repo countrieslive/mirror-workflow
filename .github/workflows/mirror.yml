@@ -54,4 +54,4 @@ jobs:
           done
 
           # Push all tags
-          git push origin --tags
+          git push origin --tags --force
