@@ -24,10 +24,15 @@ jobs:
       - name: Set matrix output
         id: set_matrix
         run: |
+          # Read the content of mapping.json
           MATRIX=$(cat mapping.json)
-          echo "Matrix JSON: ${MATRIX}"
-          echo "::set-output name=matrix::${MATRIX}"
-  
+          if [ -z "$MATRIX" ]; then
+            echo "Repository mapping is empty or could not be fetched." >&2
+            exit 1
+          fi
+          echo "Matrix JSON: $MATRIX"
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+
   mirror:
     needs: generate_matrix
     runs-on: ubuntu-latest
@@ -60,6 +65,6 @@ jobs:
           for branch in $(git branch -r | grep 'source/' | grep -v 'HEAD' | sed 's|source/||'); do
             git push origin +refs/remotes/source/$branch:refs/heads/$branch --force;
           done
-
-          # Push all tags with force (to overwrite tags that already exist)
+          
+          # Push all tags with force to overwrite existing tags
           git push origin --tags --force
