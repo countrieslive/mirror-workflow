@@ -1,32 +1,41 @@
 name: Mirror Repositories
 
 on:
-  push: # Triggers the workflow when a push is made to the repository
+  push: 
     branches:
-      - main # The branch to trigger the workflow on
+      - main
   schedule:
     - cron: '0 * * * *'  # Runs every hour
-  workflow_dispatch:  # Allows manual triggering of the workflow
-
+  workflow_dispatch:
 
 jobs:
+  generate_matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set_matrix.outputs.matrix }}
+    steps:
+      - name: Fetch repository mapping from CDN
+        id: fetch_mapping
+        run: |
+          echo "Fetching repo mapping..."
+          curl --silent "${{ secrets.CDN_MAPPING_URL }}" -o mapping.json
+          cat mapping.json
+
+      - name: Set matrix output
+        id: set_matrix
+        run: |
+          MATRIX=$(cat mapping.json)
+          echo "Matrix JSON: ${MATRIX}"
+          echo "::set-output name=matrix::${MATRIX}"
+  
   mirror:
+    needs: generate_matrix
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        repo:
-          - { src: 'https://gitlab.com/restcountries/restcountries.git', dest: 'countrieslive/restcountries-mirror' }
-          - { src: 'https://github.com/mledoze/countries.git', dest: 'countrieslive/mledoze-countries' }
-          - { src: 'https://github.com/countries/countries.git', dest: 'countrieslive/countries-mirror' }
-          - { src: 'https://github.com/countries/countries-data-json.git', dest: 'countrieslive/countries-json-mirror' }
-          - { src: 'https://github.com/prebid/currency-file.git', dest: 'countrieslive/prebid-currency-mirror' }
-          - { src: 'https://github.com/fawazahmed0/exchange-api.git', dest: 'countrieslive/fawazahmed0-exchange-mirror' }
-          - { src: 'https://github.com/madebybowtie/FlagKit.git', dest: 'countrieslive/flagKit-mirror' }
-          - { src: 'https://github.com/lipis/flag-icons.git', dest: 'countrieslive/flagicons-mirror' }
-          # Add more repositories as needed
-
+        repo: ${{ fromJson(needs.generate_matrix.outputs.matrix) }}
     steps:
-      - name: Checkout GitHub repository
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -38,20 +47,19 @@ jobs:
 
       - name: Add Source Remote
         run: |
-          git remote add source ${{ matrix.repo.src }}
+          git remote add source "${{ matrix.repo.src }}"
           git fetch source --tags
 
-      - name: Push to GitHub
+      - name: Push to Destination Repository
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          # Set the destination repository URL
-          git remote set-url origin https://${{ secrets.GH_PAT }}@github.com/${{ matrix.repo.dest }}.git
+          git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ matrix.repo.dest }}.git
           
           # Push all branches except HEAD
-          for branch in $(git branch -r | grep 'source/' | grep -v 'HEAD' | sed 's/source\///'); do
+          for branch in $(git branch -r | grep 'source/' | grep -v 'HEAD' | sed 's|source/||'); do
             git push origin +refs/remotes/source/$branch:refs/heads/$branch --force;
           done
 
-          # Push all tags
+          # Push all tags with force (to overwrite tags that already exist)
           git push origin --tags --force
