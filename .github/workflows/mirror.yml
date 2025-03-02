@@ -1,7 +1,7 @@
 name: Mirror Repositories
 
 on:
-  push:
+  push: 
     branches:
       - main
   schedule:
@@ -17,7 +17,7 @@ jobs:
       - name: Fetch repository mapping from CDN
         id: fetch_mapping
         run: |
-          echo "Fetching repository mapping from CDN..."
+          echo "Fetching repo mapping..."
           curl --silent "${{ secrets.CDN_MAPPING_URL }}" -o mapping.json
           cat mapping.json
 
@@ -25,15 +25,11 @@ jobs:
         id: set_matrix
         run: |
           MATRIX=$(cat mapping.json)
-          if [ -z "$MATRIX" ]; then
-            echo "Repository mapping is empty or could not be fetched." >&2
-            exit 1
-          fi
-          echo "Matrix JSON: $MATRIX"
+          echo "Matrix JSON: ${MATRIX}"
           echo "matrix<<EOF" >> $GITHUB_OUTPUT
           echo "$MATRIX" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-
+  
   mirror:
     needs: generate_matrix
     runs-on: ubuntu-latest
@@ -66,6 +62,6 @@ jobs:
           for branch in $(git branch -r | grep 'source/' | grep -v 'HEAD' | sed 's|source/||'); do
             git push origin +refs/remotes/source/$branch:refs/heads/$branch --force;
           done
-          
-          # Push all tags with force to overwrite existing tags
+
+          # Push all tags with force (to overwrite tags that already exist)
           git push origin --tags --force
