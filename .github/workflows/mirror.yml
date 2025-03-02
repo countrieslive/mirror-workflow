@@ -1,7 +1,7 @@
 name: Mirror Repositories
 
 on:
-  push: 
+  push:
     branches:
       - main
   schedule:
@@ -17,21 +17,22 @@ jobs:
       - name: Fetch repository mapping from CDN
         id: fetch_mapping
         run: |
-          echo "Fetching repo mapping..."
+          echo "Fetching repository mapping from CDN..."
           curl --silent "${{ secrets.CDN_MAPPING_URL }}" -o mapping.json
           cat mapping.json
 
       - name: Set matrix output
         id: set_matrix
         run: |
-          # Read the content of mapping.json
           MATRIX=$(cat mapping.json)
           if [ -z "$MATRIX" ]; then
             echo "Repository mapping is empty or could not be fetched." >&2
             exit 1
           fi
           echo "Matrix JSON: $MATRIX"
-          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+          echo "matrix<<EOF" >> $GITHUB_OUTPUT
+          echo "$MATRIX" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
   mirror:
     needs: generate_matrix
